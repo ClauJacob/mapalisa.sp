@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<!-- ========================= HEAD ========================= -->
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta http-equiv="Content-Security-Policy"
+content="upgrade-insecure-requests">
+        
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<!-- LEAFLET CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<link rel="icon" href="data:,">
+
+<style>
+        
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    background: #7fb3d5;
+}
+
+/* REMOVE QUALQUER FAIXA BRANCA */
+body,
+html,
+.leaflet-pane,
+.leaflet-map-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane {
+    background: #7fb3d5 !important;
+}
+
+#map {
+    position: absolute;
+        
+    top: 32px; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: calc(100% - 32px);
+
+    background: #7fb3d5;      
+}
+         #oceanoLabel {
+
+      position: fixed;
+
+      right: 280px;
+
+      bottom: 165px;
+
+      color: #003366;
+
+      font-weight: bold;
+
+      font-size: 20px;
+
+      letter-spacing: 5px;
+
+      transform: rotate(-35deg);
+
+      z-index: 900;
+
+      pointer-events: auto;
+
+      opacity: 0.75;
+
+      text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
+}
+
+    #ccBox {
+
+    margin-top: 18px;
+ 
+    background: #000000; /* Preto sólido para contraste total */
+
+    color: #ffffff; /* Letras brancas */
+
+    padding:  10px 20px;   /* aumenta altura interna */
+
+    border-radius: 10px;
+
+    width: min(760px, 82vw); 
+
+    max-width: 90vw;
+
+    /* min-width: 760px; */
+
+    min-height: 45px;     /*  aumenta base */
+
+    max-height: 120px;  
+
+    overflow-y: auto;
+
+    text-align: justify;
+
+    font-size: 14px;
+
+    /* font-weight: 500; */  
+
+    line-height: 1.4;
+
+    letter-spacing: 0.2px;
+
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+
+    backdrop-filter: blur(6px);
+
+    opacity: 0.96;
+    
+    pointer-events: auto; /* Permite scroll no texto */
+    
+    /* Remove sombras de texto que podem causar aspecto de sobreposição */
+    text-shadow: none; 
+            
+    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#ccContainer{
+
+    position: fixed;
+
+    bottom: -3px; /* Distância do rodapé */
+
+    left: 50%;/* MARGEM ESQUERDA: Abre espaço para a legenda (que tem 15px + largura) */
+
+    transform: translateX(-50%);
+
+    z-index: 9999;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    padding: 0 20px; 
+
+    pointer-events: none;
+}
+
+#ccObs{
+
+    margin-top: 4px;
+
+    font-size: 11px;
+
+    color: #222222; /* TEXTO ESCURO */
+
+    font-style: italic;
+
+    text-align: center;
+
+    max-width: 760px;
+
+    width: min(760px, 82vw);
+
+    line-height: 1.5;
+    
+    background: transparent;
+
+    padding: 0;
+
+    border-radius: 8px;
+
+    box-shadow: none;
+
+    opacity: 1;
+
+    pointer-events: auto;
+}
+
+@media (max-width: 1366px) {
+
+    #ccBox {
+        font-size: 12px;
+        max-height: 48px;
+    }
+
+    #ccObs {
+        font-size: 10px;
+    }
+
+    .legenda-lisa {
+        font-size: 11px;
+        padding: 8px;
+    }
+
+    .controles {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        display: flex;
+        gap: 10px;
+    }
+
+    .legenda-lisa {
+        position: fixed;
+        bottom: 25px;
+        left: 15px;
+        background: white;
+        padding: 12px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 9999;
+        border: 1px solid #ccc;
+    }
+
+    .label-municipio {
+       background: transparent;
+       border: none;
+       box-shadow: none;
+       font-size: 10px;
+       color: #000;
+       font-weight: bold;
+    }
+
+}
+
+/* ========================= ABAS SUPERIORES ========================= */
+
+#abasMapa{
+
+position: fixed;
+
+top: 10px;
+
+right: 20px;
+
+z-index: 99999;
+
+display: flex;
+
+gap: 8px;
+
+background: rgba(255,255,255,0.96);
+
+padding: 10px 14px;
+
+border-radius: 14px;
+
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+backdrop-filter: blur(4px);
+
+flex-wrap: wrap;
+
+max-width: 70vw;
+
+}
+
+/* ABA ATIVA */
+
+.abaAtiva{
+
+background: #1f4e79;
+
+color: white;
+
+border: none;
+
+padding: 10px 18px;
+
+border-radius: 10px;
+
+font-weight: bold;
+
+font-size: 13px;
+
+cursor: default;
+
+}
+
+/* ABAS BLOQUEADAS */
+
+.abaBloqueada{
+display: none;
+}
+
+/*
+background: #efefef;
+color: #666;
+border: none;
+padding: 10px 18px;
+border-radius: 10px;
+font-size: 13px;
+cursor: not-allowed;
+opacity: 0.85;
+*/
+
+* {
+    box-sizing: border-box;
+}
+
+/* mapa abaixo dos controles */
+.leaflet-container {
+    z-index: 10;
+}
+
+/* controles acima do mapa */
+.leaflet-control,
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 800;
+}
+
+ /* REMOVE FAIXA PRETA */
+.leaflet-container:focus,
+.leaflet-interactive:focus,
+path:focus {
+    outline: none !important;
+}
+
+.leaflet-container {
+    outline: none !important;
+}
+        
+/* ========================= VLIBRAS ========================= */
+
+[vw]{
+    position: fixed !important;
+        
+    right: -2px !important;
+    bottom: -70px !important;
+        
+    z-index: 999999 !important;
+}
+
+/* botão acessibilidade */
+[vw-access-button]{
+    position: fixed !important;
+        
+    right: -2px !important;
+    bottom: -70px !important;
+        
+    z-index: 999999 !important;
+        
+}
+
+/* plugin/avatares */
+[vw-plugin-wrapper]{
+    position: fixed !important;
+        
+    right: -2px !important;
+    bottom: -70px !important;
+        
+    z-index: 999999 !important;
+
+    max-width: 255px !important;
+    max-height: 300px !important;
+        
+    overflow: visible !important;
+
+    pointer-events: auto !important;
+        
+}
+
+/* libera cliques internos */
+
+[vw-plugin-wrapper] *,
+[vw-access-button] *{
+    pointer-events: auto !important;
+}
+
+ /* textos internos menores */
+.vpw-text,
+.vpw-subtitle,
+.vpw-message,
+.vpw-chat,
+.vpw-chat-message,
+.vpw-content,
+.vpw-box{
+        
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+}
+        
+/* ========================= CELULAR ========================= */
+
+@media (max-width: 768px) {
+
+    #map {
+        height: 100dvh;
+        width: 100%;
+    }
+
+    .controles {
+
+        top: 6px;
+
+        left: 50%;
+
+        transform: translateX(-50%);
+
+        width: 95vw;
+
+        max-width: 95vw;
+
+        gap: 6px;
+
+        padding: 8px;
+
+        flex-wrap: wrap;
+    }
+
+    .controles select,
+    .controles button {
+
+        font-size: 11px;
+
+        padding: 4px 6px;
+    }
+
+    .legenda-lisa {
+
+        left: 8px;
+
+        bottom: 8px;
+
+        font-size: 10px;
+
+        padding: 8px;
+
+        max-width: 150px;
+    }
+
+    #ccContainer {
+
+        width: 100%;
+
+        padding: 0 10px;
+    }
+
+    #ccBox {
+
+        width: 95vw;
+
+        font-size: 11px;
+
+        max-height: 80px;
+
+        padding: 8px 12px;
+    }
+
+    #ccObs {
+
+        width: 95vw;
+
+        font-size: 9px;
+    }
+
+    #abasMapa {
+
+        top: 6px;
+
+        right: 6px;
+
+        max-width: 92vw;
+
+        padding: 6px;
+
+        gap: 4px;
+    }
+
+    .abaAtiva {
+
+        font-size: 10px;
+
+        padding: 6px 10px;
+    }
+
+   /* OCEANO MOBILE */
+#oceanoLabel {
+
+    right: 10px;
+
+    bottom: 165px;
+
+    font-size: 12px;
+
+    letter-spacing: 2px;
+}
+        
+/* ACESSIBILIDADE VLibras */
+
+.sr-only{
+
+position:absolute;
+
+width:1px;
+
+height:1px;
+
+padding:0;
+
+margin:-1px;
+
+overflow:hidden;
+
+clip:rect(0,0,0,0);
+
+white-space:nowrap;
+
+border:0;
+
+}
+    </style>
+</head>
+
+<!-- ========================= BODY ========================= -->
+
+<body>
+<div id="map"></div>
+
+<!-- ========================= MENU ABAS ========================= -->
+
+<div id="abasMapa"
+role="navigation"
+aria-label="Menu de mapas interativos">
+
+<button class="abaAtiva"
+id="abaMapa"
+aria-label="Mapa LISA ativo">
+Mapa LISA
+</button>
+
+<button class="abaBloqueada">
+Diff-in-Diff
+aria-label="Diff in Diff bloqueado">
+🔒
+</button>
+
+<button class="abaBloqueada">
+Mapa de Calor
+aria-label="Diff in Diff bloqueado">
+🔒
+</button>
+
+<button class="abaBloqueada">
+Rodovias
+aria-label="Diff in Diff bloqueado">
+🔒
+</button>
+
+<button class="abaBloqueada">
+Painel Estatístico
+aria-label="Diff in Diff bloqueado">
+🔒
+</button>
+
+</div>
+
+<div id="oceanoLabel"
+role="text"
+aria-live="polite"
+tabindex="0">
+OCEANO ATLÂNTICO
+</div>
+
+<!-- ========================= HTML ========================= -->
+
+<div class="controles">
+
+<label for="ano"
+id="labelAno"
+class="sr-only">
+Ano
+</label>
+
+<select id="ano"
+aria-label="Selecionar ano"
+title="Selecionar ano">
+        
+    <option>2022</option>
+    <option>2023</option>
+    <option>2024</option>
+    <option>2025</option>
+</select>
+   
+<label for="crime"
+id="labelCrime"
+class="sr-only">
+Ocorrências
+</label>
+        
+<select id="crime"
+aria-label="Selecionar tipo de crime"
+title="Selecionar tipo de crime">
+        
+        <option value="furto">Furto de veículo</option>
+        <option value="roubo">Roubo de veículo</option>
+    </select>
+
+<label for="idioma"
+id="labelIdioma"
+class="sr-only">
+Idioma
+</label>
+
+<select id="idioma"
+onchange="atualizarUI()"
+aria-label="Selecionar idioma"
+title="Selecionar idioma">
+            
+        <option value="pt-BR">PT-BR</option>
+        <option value="pt-PT">PT</option>
+        <option value="en-US">EN</option>
+        <option value="es-ES">ES</option>
+        <option value="fr-FR">FR</option>
+        <option value="de-DE">DE</option>
+        <option value="it-IT">IT</option>
+        <option value="ru-RU">RU</option>
+        <option value="ja-JP">JA</option>
+        <option value="zh-CN">ZH</option>
+            
+</select>
+    <button id="btnAudio" 
+onclick="toggleAudio()" 
+style="cursor:pointer"
+aria-label="Ativar ou desativar áudio">
+🔊 Áudio: ON</button>
+</div>
+
+<div class="legenda-lisa"
+role="complementary"
+aria-label="Legenda dos agrupamentos LISA">
+
+    <b>LISA</b><br>
+    <span style="color:#d7191c">●</span> <span id="lisa0">Alto-Alto</span><br>
+    <span style="color:#2c7bb6">●</span> <span id="lisa1">Baixo-Baixo</span><br>
+    <span style="color:#fdae61">◆</span> <span id="lisa2">Alto-Baixo</span><br>
+    <span style="color:#abd9e9">◆</span> <span id="lisa3">Baixo-Alto</span><br>
+    <span style="color:#eeeeee; border:1px solid #999">○</span> <span id="lisa4">Não significativo</span><br>
+    <span style="color:#fff; border:1px solid #000">□</span> <span id="lisa5">Sem dados SSP</span>
+</div>
+
+<div id="ccContainer">
+
+    <div id="ccBox"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+    tabindex="0">
+    </div>
+
+    <div id="ccObs"
+    role="note"
+    aria-live="polite">
+    Áudio sintetizado com vozes nativas disponíveis no navegador e no sistema operacional. A disponibilidade e a qualidade da pronúncia podem variar conforme os pacotes de idioma instalados no dispositivo.
+    </div>
+
+</div>
+
+<script>
+// ========================= DICIONÁRIO DE UI =========================
+
+  let muted = false;
+
+let voices = [];
+
+speechSynthesis.onvoiceschanged = () => {
+    voices = speechSynthesis.getVoices();
+};
+
+       function toggleAudio() {
+
+    muted = !muted;
+
+    let lang =
+    document.getElementById(
+    "idioma"
+    ).value;
+
+    let audioData =
+    uiAudio[lang] ||
+    uiAudio["pt-BR"];
+
+    const btn =
+    document.getElementById(
+    "btnAudio"
+    );
+
+    if (btn) {
+
+        btn.innerHTML =
+        muted
+        ? audioData.off
+        : audioData.on;
+    }
+
+    window.speechSynthesis.cancel();
+}
+
+function falar(texto) {
+    if (muted) return;
+
+   if (speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+}
+
+    let lang = document.getElementById("idioma").value;
+
+        let msgTexto = texto
+        .replace(/\s+/g, " ")      // remove espaços duplicados
+        .replace(/\.\s*/g, ". ")   // garante espaço após ponto
+        .replace(/,\s*/g, ", ");   // garante espaço após vírgula
+
+//DETECÇÃO DE CONTEÚDO (sem mudar texto)
+    let isMunicipio = msgTexto.includes("No município") || msgTexto.includes("In the municipality") || msgTexto.includes("En el municipio");
+    let hasTaxa = msgTexto.includes("taxa") || msgTexto.includes("rate") || msgTexto.includes("tasa");
+
+    let msg = new SpeechSynthesisUtterance(msgTexto);
+
+    let voz =
+    voices.find(v => v.lang === lang) ||
+
+    voices.find(v => v.lang.startsWith(lang.split("-")[0])) ||
+
+    voices.find(v => v.lang === "en-US");
+
+       if (!voz && lang.startsWith("pt")) {
+        voz = voices.find(v => v.lang === "pt-BR");
+    }
+
+    if (!voz) {
+        voz = voices.find(v => v.lang.startsWith("en"));
+    }
+
+    if (voz) {
+        msg.voice = voz;
+        msg.lang = voz.lang;
+    } else {
+        msg.lang = lang;
+    }
+
+ console.log("VOZ USADA:", voz ? voz.name : "nenhuma");
+        
+    if (isMunicipio && hasTaxa) {
+        msg.rate = 0.88;   // mais lento (relatório oficial)
+        msg.pitch = 1;
+    } else if (isMunicipio) {
+        msg.rate = 0.92;   // leitura padrão
+        msg.pitch = 1;
+    } else {
+        msg.rate = 1;
+        msg.pitch = 1;
+    }
+
+    msg.volume = 1;
+    msg.text = msg.text.substring(0, 500);
+
+    speechSynthesis.speak(msg);
+}
+
+function numeroPorExtenso(n, genero = "masculino") {
+    if (n === 0) return "zero";
+    const uMasc = ["","um","dois","três","quatro","cinco","seis","sete","oito","nove"];
+    const uFem  = ["","uma","duas","três","quatro","cinco","seis","sete","oito","nove"];
+    const especiais = ["dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+    const dezenas = ["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+    const centMasc = ["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+    const centFem  = ["","cento","duzentas","trezentas","quatrocentas","quinhentas","seiscentas","setecentas","oitocentas","novecentas"];
+    let u = genero === "feminino" ? uFem : uMasc;
+    let c = genero === "feminino" ? centFem : centMasc;
+    function conv(num) {
+        if (num === 100) return "cem";
+        if (num < 10) return u[num];
+        if (num < 20) return especiais[num - 10];
+        if (num < 100) {
+            let d = Math.floor(num/10); 
+            let un = num%10;
+            return dezenas[d] + (un ? " e " + u[un] : "");
+        }
+        if (num < 1000) {
+            let ce = Math.floor(num/100);
+            let r = num%100;
+            return c[ce] + (r ? " e " + conv(r) : "");
+        }
+        return num.toString();
+    }
+    return conv(n);
+}
+
+// --- DICIONÁRIO ---
+
+const ui = {
+    "pt-BR": { oceano: "Oceano Atlântico", furto: "Furto de veículos", roubo: "Roubo de veículos", lisa: ["Alto-Alto","Baixo-Baixo","Alto-Baixo","Baixo-Alto","Não significativo","Sem dados SSP"] },
+    "en-US": { oceano: "Atlantic Ocean", furto: "Vehicle theft", roubo: "Vehicle robbery", lisa: ["High-High","Low-Low","High-Low","Low-High","Not significant","No data"] },
+    "es-ES": { oceano: "Océano Atlántico", furto: "Hurto de vehículos", roubo: "Robo de vehículos", lisa: ["Alto-Alto","Bajo-Bajo","Alto-Bajo","Bajo-Alto","No significativo","Sin datos"] },
+    "fr-FR": { oceano: "Océan Atlantique", furto: "Vol de véhicules", roubo: "Vol qualificado de veículos", lisa: ["Élevé-Élevé","Faible-Faible","Élevé-Faible","Faible-Élevé","Non significatif","Sans données"] },
+    "de-DE": { oceano: "Atlantischer Ozean", furto: "Fahrzeugdiebstahl", roubo: "Raub von Fahrzeugen", lisa: ["Hoch-Hoch","Niedrig-Niedrig","Hoch-Niedrig","Niedrig-Hoch","Nicht signifikant","Keine Daten"] },
+    "it-IT": { oceano: "Oceano Atlantico", furto: "Furto di veicoli", roubo: "Rapina di veicoli", lisa: ["Alto-Alto","Basso-Basso","Alto-Basso","Basso-Alto","Non significativo","Nessun dato"] },
+    "ru-RU": { oceano: "Атлантический океан", furto: "Кража транспортных средств", roubo: "Грабеж транспортных средств", lisa: ["Высокий-Высокий","Низкий-Низкий","Высокий-Низкий","Низкий-Высокий","Не значимо","Нет данных"] },
+    "ja-JP": { oceano: "大西洋", furto: "車両盗難", roubo: "車両強盗", lisa: ["高-高","低-低","高-低","低-高","有意でない","データなし"] },
+    "zh-CN": { oceano: "大西洋", furto: "车辆盗窃", roubo: "车辆抢劫", lisa: ["高-高","低-低","高-低","低-高","不显著","无数据"] },
+    "pt-PT": { oceano: "Oceano Atlântico", furto: "Furto de veículos", roubo: "Roubo de veículos", lisa: ["Alto-Alto","Baixo-Baixo","Alto-Baixo","Baixo-Alto","Não significativo","Sem dados"] }
+};
+
+const obsText = {
+
+"pt-BR":
+"Áudio sintetizado com vozes nativas disponíveis no navegador e sistema operacional. A disponibilidade e qualidade podem variar conforme os pacotes instalados no dispositivo.",
+
+"pt-PT":
+"Áudio sintetizado com vozes nativas disponíveis no navegador e sistema operativo. A disponibilidade e qualidade podem variar conforme os pacotes instalados no dispositivo.",
+
+"en-US":
+"Synthesized audio with native voices available in the browser and operating system. Availability and pronunciation quality may vary depending on installed language packages.",
+
+"es-ES":
+"Audio sintetizado con voces nativas disponibles en el navegador y sistema operativo. La disponibilidad y calidad de pronunciación pueden variar según los paquetes instalados.",
+
+"fr-FR":
+"Audio synthétisé avec des voix natives disponibles dans le navigateur et le système d’exploitation. La disponibilité et la qualité peuvent varier selon les packs installés.",
+
+"de-DE":
+"Synthetisierte Audios mit nativen Stimmen des Browsers und Betriebssystems. Verfügbarkeit und Qualität können je nach installierten Sprachpaketen variieren.",
+
+"it-IT":
+"Audio sintetizzato con voci native disponibili nel browser e sistema operativo. Disponibilità e qualità possono variare in base ai pacchetti installati.",
+
+"ru-RU":
+"Синтезированный звук с использованием голосов браузера и операционной системы. Доступность и качество могут различаться.",
+
+"ja-JP":
+"ブラウザとOSで利用可能なネイティブ音声による合成音声です。利用可能性や品質は環境により異なります。",
+
+"zh-CN":
+"使用浏览器和操作系统中的本地语音合成。可用性和发音质量可能因语言包不同而变化。"
+
+};
+
+const uiAudio = {
+
+"pt-BR": {
+on: "🔊 Áudio: ON",
+off: "🔇 Áudio: OFF"
+},
+
+"pt-PT": {
+on: "🔊 Áudio: ATIVO",
+off: "🔇 Áudio: DESATIVADO"
+},
+
+"en-US": {
+on: "🔊 Audio: ON",
+off: "🔇 Audio: OFF"
+},
+
+"es-ES": {
+on: "🔊 Audio: ACTIVADO",
+off: "🔇 Audio: DESACTIVADO"
+},
+
+"fr-FR": {
+on: "🔊 Audio : ACTIVÉ",
+off: "🔇 Audio : DÉSACTIVÉ"
+},
+
+"de-DE": {
+on: "🔊 Audio: EIN",
+off: "🔇 Audio: AUS"
+},
+
+"it-IT": {
+on: "🔊 Audio: ATTIVO",
+off: "🔇 Audio: DISATTIVATO"
+},
+
+"ru-RU": {
+on: "🔊 Аудио: ВКЛ",
+off: "🔇 Аудио: ВЫКЛ"
+},
+
+"ja-JP": {
+on: "🔊 音声: オン",
+off: "🔇 音声: オフ"
+},
+
+"zh-CN": {
+on: "🔊 音频: 开",
+off: "🔇 音频: 关"
+}
+
+};
+
+const uiAbas = {
+
+"pt-BR": {
+mapa: "Mapa LISA"
+},
+
+"pt-PT": {
+mapa: "Mapa LISA"
+},
+
+"en-US": {
+mapa: "LISA Map"
+},
+
+"es-ES": {
+mapa: "Mapa LISA"
+},
+
+"fr-FR": {
+mapa: "Carte LISA"
+},
+
+"de-DE": {
+mapa: "LISA-Karte"
+},
+
+"it-IT": {
+mapa: "Mappa LISA"
+},
+
+"ru-RU": {
+mapa: "Карта LISA"
+},
+
+"ja-JP": {
+mapa: "LISAマップ"
+},
+
+"zh-CN": {
+mapa: "LISA地图"
+}
+
+};
+
+const uiLabels = {
+
+"pt-BR": {
+ano: "Ano",
+crime: "Ocorrências",
+idioma: "Idioma"
+},
+
+"pt-PT": {
+ano: "Ano",
+crime: "Ocorrências",
+idioma: "Idioma"
+},
+
+"en-US": {
+ano: "Year",
+crime: "Occurrences",
+idioma: "Language"
+},
+
+"es-ES": {
+ano: "Año",
+crime: "Ocurrencias",
+idioma: "Idioma"
+},
+
+"fr-FR": {
+ano: "Année",
+crime: "Occurrences",
+idioma: "Langue"
+},
+
+"de-DE": {
+ano: "Jahr",
+crime: "Vorkommnisse",
+idioma: "Sprache"
+},
+
+"it-IT": {
+ano: "Anno",
+crime: "Occorrenze",
+idioma: "Lingua"
+},
+
+"ru-RU": {
+ano: "Год",
+crime: "События",
+idioma: "Язык"
+},
+
+"ja-JP": {
+ano: "年",
+crime: "発生件数",
+idioma: "言語"
+},
+
+"zh-CN": {
+ano: "年份",
+crime: "事件",
+idioma: "语言"
+}
+
+};
+
+const i18n = {
+
+  crime: {
+
+    "pt-BR": {
+      furto: ["furto de veículo", "furtos de veículos"],
+      roubo: ["roubo de veículo", "roubos de veículos"]
+    },
+
+    "pt-PT": {
+      furto: ["furto de veículo", "furtos de veículos"],
+      roubo: ["roubo de veículo", "roubos de veículos"]
+    },
+
+    "en-US": {
+      furto: ["vehicle theft", "vehicle thefts"],
+      roubo: ["vehicle robbery", "vehicle robberies"]
+    },
+
+    "es-ES": {
+      furto: ["hurto de vehículo", "hurtos de vehículos"],
+      roubo: ["robo de vehículo", "robos de vehículos"]
+    },
+
+    "fr-FR": {
+      furto: ["vol de véhicule", "vols de véhicules"],
+      roubo: ["vol de véhicule qualifié", "vols de véhicules qualifiés"]
+    },
+
+    "de-DE": {
+      furto: ["Fahrzeugdiebstahl", "Fahrzeugdiebstähle"],
+      roubo: ["Fahrzeugraub", "Fahrzeugraube"]
+    },
+
+    "it-IT": {
+      furto: ["furto di veicolo", "furti di veicoli"],
+      roubo: ["rapina di veicolo", "rapine di veicoli"]
+    },
+
+    "ru-RU": {
+      furto: ["кража транспортного средства", "кражи транспортных средств"],
+      roubo: ["грабеж транспортного средства", "грабежи транспортных средств"]
+    },
+
+    "ja-JP": {
+      furto: ["車両盗難", "車両盗難事件"],
+      roubo: ["車両強盗", "車両強盗事件"]
+    },
+
+    "zh-CN": {
+      furto: ["车辆盗窃", "车辆盗窃案件"],
+      roubo: ["车辆抢劫", "车辆抢劫案件"]
+    }
+  },
+
+  verbs: {
+
+    "pt-BR": {
+      singular: "foi registrado",
+      plural: "foram registrados"
+    },
+
+    "pt-PT": {
+      singular: "foi registado",
+      plural: "foram registados"
+    },
+
+    "en-US": {
+      singular: "was recorded",
+      plural: "were recorded"
+    },
+
+    "es-ES": {
+      singular: "fue registrado",
+      plural: "fueron registrados"
+    },
+
+    "fr-FR": {
+      singular: "a été enregistré",
+      plural: "ont été enregistrés"
+    },
+
+    "de-DE": {
+      singular: "wurde registriert",
+      plural: "wurden registriert"
+    },
+
+    "it-IT": {
+      singular: "è stato registrato",
+      plural: "sono stati registrati"
+    },
+
+    "ru-RU": {
+      singular: "был зарегистрирован",
+      plural: "были зарегистрированы"
+    },
+
+    "ja-JP": {
+      singular: "が記録されました",
+      plural: "が記録されました"
+    },
+
+    "zh-CN": {
+      singular: "已记录",
+      plural: "已记录"
+    }
+
+  }
+
+};
+
+function t(lang, type, key, num = 1) {
+    const data = i18n[type]?.[lang] || i18n[type]?.["pt-BR"];
+
+    if (!data) return "";
+
+    return (num === 1) ? data[key][0] : data[key][1];
+}
+
+function getVerb(lang, n) {
+    const v = i18n.verbs?.[lang] || i18n.verbs["pt-BR"];
+    return (n === 1) ? v.singular : v.plural;
+}
+
+function atualizarUI() {
+
+    let lang =
+    document.getElementById("idioma").value;
+
+    let data =
+    ui[lang] || ui["pt-BR"];
+
+    // OCEANO
+    document.getElementById(
+    "oceanoLabel"
+    ).innerText = data.oceano;
+
+    // LEGENDA LISA
+    for (let i = 0; i < 6; i++) {
+
+        let el =
+        document.getElementById(
+        "lisa" + i
+        );
+
+        if (el) {
+            el.innerText =
+            data.lisa[i];
+        }
+    }
+
+    // MENU CRIMES
+    let crimeSelect =
+    document.getElementById("crime");
+
+    crimeSelect.options[0].text =
+    data.furto;
+
+    crimeSelect.options[1].text =
+    data.roubo;
+
+    // CCOBS
+    let obs =
+    document.getElementById(
+    "ccObs"
+    );
+
+    if (obs) {
+
+        obs.innerText =
+        obsText[lang] ||
+        obsText["pt-BR"];
+    }
+
+    // BOTÃO ÁUDIO
+    let audioData =
+    uiAudio[lang] ||
+    uiAudio["pt-BR"];
+
+    let btn =
+    document.getElementById(
+    "btnAudio"
+    );
+
+    if (btn) {
+
+        btn.innerHTML =
+        muted
+        ? audioData.off
+        : audioData.on;
+    }
+
+    // ABA MAPA
+    let aba =
+    document.getElementById(
+    "abaMapa"
+    );
+
+    if (aba) {
+
+        aba.innerText =
+        (uiAbas[lang] || uiAbas["pt-BR"]).mapa;
+    }
+        
+        const labels =
+uiLabels[lang] ||
+uiLabels["pt-BR"];
+
+document.getElementById("labelAno").innerText =
+labels.ano;
+
+document.getElementById("labelCrime").innerText =
+labels.crime;
+
+document.getElementById("labelIdioma").innerText =
+labels.idioma;
+        
+         document.getElementById("ccBox").focus();
+}
+
+// ======================================================================================================================================================
+// ============================ MAPA LISA =============================
+// =======================================================================================================================================================
+
+// ============================== LÓGICA DO MAPA E TEXTOS =================================
+
+const idiomasData = {
+ "pt-BR": {
+semDados: "No município de ${nome}, no ano de ${ano}, ${foram} registrado${plural} ${ocorr} ${tipo}.",
+
+HH: "No município de ${nome}, no ano de ${ano}, ${foram} registrado${plural} ${ocorr} ${tipo}. Isso representa uma taxa de ${taxa} para cada 100 mil habitantes. Em comparação com as cidades ao redor, este município apresenta uma concentração de crimes muito alta, sendo classificado como um ponto crítico.",
+
+LL: "No município de ${nome}, no ano de ${ano}, ${foram} registrado${plural} ${ocorr} ${tipo}. Isso representa uma taxa de ${taxa} para cada 100 mil habitantes. Em comparação com as cidades ao redor, este município apresenta uma concentração de crimes muito baixa, sendo classificado como uma área segura.",
+
+HL: "No município de ${nome}, no ano de ${ano}, ${foram} registrado${plural} ${ocorr} ${tipo}. Isso representa uma taxa de ${taxa} para cada 100 mil habitantes. Em comparação com as cidades ao redor, este município apresenta alta concentração de crimes, mas seus vizinhos têm taxas baixas, sendo classificado como uma área em destaque isolado.",
+
+LH: "No município de ${nome}, no ano de ${ano}, ${foram} registrado${plural} ${ocorr} ${tipo}. Isso representa uma taxa de ${taxa} para cada 100 mil habitantes. Em comparação com as cidades ao redor, este município apresenta baixa concentração, mas seus vizinhos têm taxas altas, sendo classificado como uma área de segurança.",
+
+NS: "No município de ${nome}, no ano de ${ano}, ${foram} registrado${plural} ${ocorr} ${tipo}, com uma taxa de ${taxa} para cada 100 mil habitantes. Neste período não foi identificado padrão estatístico.",
+
+ND: "No município de ${nome}, no ano de ${ano} não foram registrados dados disponíveis de ${tipo}, segundo SSP."
+},
+
+"de-DE": {
+
+semDados: "In der Gemeinde ${nome} wurden im Jahr ${ano} ${ocorr} ${tipo} registriert.",
+
+HH: "In der Gemeinde ${nome} wurden im Jahr ${ano} ${ocorr} ${tipo} ${verbo}. Dies entspricht einer Rate von ${taxa} pro 100 Tausend Einwohner. Hohe Kriminalitätskonzentration (High-High-Cluster).",
+
+LL: "In der Gemeinde ${nome} wurden im Jahr ${ano} ${ocorr} ${tipo} ${verbo}. Dies entspricht einer Rate von ${taxa} pro 100 Tausend Einwohner. Niedrige Konzentration (Low-Low-Cluster).",
+
+HL: "In der Gemeinde ${nome} wurden im Jahr ${ano} ${ocorr} ${tipo} ${verbo}. Dies entspricht einer Rate von ${taxa} pro 100 Tausend Einwohner. Hohe Werte mit niedrigen Nachbarn (High-Low-Ausreißer).",
+
+LH: "In der Gemeinde ${nome} wurden im Jahr ${ano} ${ocorr} ${tipo} ${verbo}. Dies entspricht einer Rate von ${taxa} pro 100 Tausend Einwohner. Niedrige Werte mit hohen Nachbarn (Low-High-Ausreißer).",
+
+NS: "In der Gemeinde ${nome} wurden im Jahr ${ano} ${ocorr} ${tipo} ${verbo}, mit einem Satz von ${taxa} pro 100 Tausend Einwohner. Kein statistisch signifikanter Zusammenhang.",
+
+ND: "In der Gemeinde ${nome} wurden im Jahr ${ano} keine Daten zu ${tipo} gemäß SSP registriert."
+
+},
+
+"zh-CN": {
+
+semDados: "${ano}年，${nome}市记录了${ocorr}起案件。",
+
+HH: "${ano}年，${nome}市记录了${ocorr}起案件。这相当于每10万人中有${taxa}起案件。该地区犯罪高度集中，被归类为高-高集群。",
+
+LL: "${ano}年，${nome}市记录了${ocorr}起案件。这相当于每10万人中有${taxa}起案件。犯罪水平较低，被归类为低-低集群。",
+
+HL: "${ano}年，${nome}市记录了${ocorr}起案件。这相当于每10万人中有${taxa}起案件。该地区为高值而周边为低值，属于高-低异常值。",
+
+LH: "${ano}年，${nome}市记录了${ocorr}起案件。这相当于每10万人中有${taxa}起案件。该地区为低值而周边为高值，属于低-高异常值。",
+
+NS: "${ano}年，${nome}市记录了${ocorr}起案件，发生率为每10万人${taxa}起。未发现统计显著的空间模式。",
+
+ND: "${ano}年，${nome}市没有记录与${tipo}相关的数据（根据SSP）。"
+
+},
+
+"en-US": {
+
+semDados: "In the municipality of ${nome}, in the year ${ano}, ${ocorr} ${tipo} ${verbo}.",
+
+HH: "In the municipality of ${nome}, in the year ${ano}, ${ocorr} ${tipo} ${verbo}. This represents a rate of ${taxa} occurrences per 100 thousand inhabitants. Compared to surrounding municipalities, this area shows a very high concentration of crimes, being classified as a High-High cluster.",
+
+LL: "In the municipality of ${nome}, in the year ${ano}, ${ocorr} ${tipo} ${verbo}. This represents a rate of ${taxa} occurrences per 100 thousand inhabitants. This area shows a very low concentration of crimes, being classified as a Low-Low cluster.",
+
+HL: "In the municipality of ${nome}, in the year ${ano}, ${ocorr} ${tipo} ${verbo}. This represents a rate of ${taxa} occurrences per 100 thousand inhabitants. This municipality presents a high concentration of crimes, while its neighbors have low rates, being classified as a High-Low outlier.",
+
+LH: "In the municipality of ${nome}, in the year ${ano}, ${ocorr} ${tipo} ${verbo}. This represents a rate of ${taxa} occurrences per 100 thousand inhabitants. This municipality presents a low concentration, while its neighbors have high rates, being classified as a Low-High outlier.",
+
+NS: "In the municipality of ${nome}, in the year ${ano}, ${ocorr} ${tipo} ${verbo}, with a rate of ${taxa} per 100 thousand inhabitants. No statistically significant spatial pattern was identified.",
+
+ND: "In the municipality of ${nome}, in the year ${ano}, no ${tipo} data were recorded according to SSP."
+
+},
+
+"es-ES": {
+
+semDados: "En el municipio de ${nome}, en el año ${ano}, ${ocorr} ${tipo} ${verbo}.",
+
+HH: "En el municipio de ${nome}, en el año ${ano}, ${ocorr} ${tipo} ${verbo}. Esto representa una tasa de ${taxa} pour cada 100 000 habitantes. Presenta una concentración muy alta de delitos, siendo clasificado como un clúster Alto-Alto.",
+
+LL: "En el municipio de ${nome}, en el año ${ano}, ${ocorr} ${tipo} ${verbo}. Esto representa una tasa de ${taxa} pour cada 100 000 habitantes. Presenta una concentración muy baja, siendo un clúster Bajo-Bajo.",
+
+HL: "En el municipio de ${nome}, en el año ${ano}, ${ocorr} ${tipo} ${verbo}. Esto representa una tasa de ${taxa} pour cada 100 000 habitantes.Alta concentración con vecinos de baja tasa, clasificado como outlier Alto-Bajo.",
+
+LH: "En el municipio de ${nome}, en el año ${ano}, ${ocorr} ${tipo} ${verbo}. Esto representa una tasa de ${taxa} pour cada 100 000 habitantes. Baja concentración con vecinos de alta tasa.",
+
+NS: "En el municipio de ${nome}, en el año ${ano}, ${ocorr} ${tipo} ${verbo}, con una tasa de ${taxa} pour 100 000 habitants. No se identificó un patrón estadístico significativo.",
+
+ND: "En el municipio de ${nome}, en el año ${ano}, no se registraron datos de ${tipo}, según la SSP."
+
+},
+
+"fr-FR": {
+
+semDados: "Dans la municipalité de ${nome}, en ${ano}, ${ocorr} ${tipo} ${verbo}.",
+
+HH: "Dans la municipalité de ${nome}, en ${ano}, ${ocorr} ${tipo} ${verbo}. Cela représente un taux de ${taxa} pour 100 000 habitants. Forte concentration de criminalité, classée comme cluster élevé-élevé.",
+
+LL: "Dans la municipalité de ${nome}, en ${ano}, ${ocorr} ${tipo} ${verbo}. Cela représente un taux de ${taxa} pour 100 000 habitants. Faible concentration, cluster bas-bas.",
+
+HL: "Dans la municipalité de ${nome}, en ${ano}, ${ocorr} ${tipo} ${verbo}. Cela représente un taux de ${taxa} pour 100 000 habitants. Forte concentration avec voisins faibles (outlier élevé-bas).",
+
+LH: "Dans la municipalité de ${nome}, en ${ano}, ${ocorr} ${tipo} ${verbo}. Cela représente un taux de ${taxa} pour 100 000 habitants. Faible concentration avec voisins élevés (outlier bas-élevé).",
+
+NS: "Dans la municipalité de ${nome}, en ${ano}, ${ocorr} ${tipo} ${verbo}, avec un taux de ${taxa} pour 100 000 habitants. Aucun schéma statistique significatif n’a été identifié.",
+
+ND: "Dans la municipalité de ${nome}, en ${ano}, aucune donnée concernant ${tipo} n’a été enregistrée selon la SSP."
+
+},
+
+"it-IT": {
+
+semDados: "Nel comune di ${nome}, nell'anno ${ano}, sono stati registrati ${ocorr} ${tipo} ${verbo}.",
+
+HH: "Nel comune di ${nome}, nell'anno ${ano}, sono stati registrati ${ocorr} ${tipo} ${verbo}. Ciò rappresenta un tasso di ${taxa} ogni 100 mila abitanti. Alta concentrazione di criminalità (cluster alto-alto).",
+
+LL: "Nel comune di ${nome}, nell'anno ${ano}, sono stati registrati ${ocorr} ${tipo} ${verbo}. Ciò rappresenta un tasso di ${taxa} ogni 100 mila abitanti. Bassa concentrazione (cluster basso-basso).",
+
+HL: "Nel comune di ${nome}, nell'anno ${ano}, sono stati registrati ${ocorr} ${tipo} ${verbo}. Ciò rappresenta un tasso di ${taxa} ogni 100 mila abitanti. Outlier alto-basso.",
+
+LH: "Nel comune di ${nome}, nell'anno ${ano}, sono stati registrati ${ocorr} ${tipo} ${verbo}. Ciò rappresenta un tasso di ${taxa} ogni 100 mila abitanti. Outlier basso-alto.",
+
+NS: "Nel comune di ${nome}, nell'anno ${ano}, sono stati registrati ${ocorr} ${tipo} ${verbo}, con un tasso di ${taxa} ogni 100 mila abitanti. Nessun pattern statisticamente significativo.",
+
+ND: "Nel comune di ${nome}, nell'anno ${ano}, non sono stati registrati dati relativi a ${tipo}, secondo SSP."
+
+},
+
+"ja-JP": {
+
+semDados: "${ano}年、${nome}市では${ocorr}件の事案が記録されました。",
+
+HH: "${ano}年、${nome}市では${ocorr}件の事案が記録されました。これは人口10万人あたり${taxa}件の発生率を示しています。周辺地域と比較して犯罪の集中度が非常に高く、高-高クラスターと分類されます。",
+
+LL: "${ano}年、${nome}市では${ocorr}件の事案が記録されました。これは人口10万人あたり${taxa}件の発生率を示しています。 犯罪の集中度は非常に低く、低-低クラスターと分類されます。",
+
+HL: "${ano}年、${nome}市では${ocorr}件の事案が記録されました。これは人口10万人あたり${taxa}件の発生率を示しています。 周辺地域が低い中で高い値を示し、高-低外れ値と分類されます。",
+
+LH: "${ano}年、${nome}市では${ocorr}件の事案が記録されました。これは人口10万人あたり${taxa}件の発生率を示しています。 周辺地域が高い中で低い値を示し、低-高外れ値と分類されます。",
+
+NS: "${ano}年、${nome}市では${ocorr}件の事案が記録され、発生率は人口10万人あたり${taxa}件でした。統計的に有意な空間パターンは確認されませんでした。",
+
+ND: "${ano}年、${nome}市では、SSPによる${tipo}のデータは記録されていません。"
+
+},
+
+"pt-PT": {
+
+semDados: "No concelho de ${nome}, no ano de ${ano}, ${foram} registado${plural} ${ocorr} ${tipo}.",
+
+HH: "No concelho de ${nome}, no ano de ${ano}, ${foram} registado${plural} ${ocorr} ${tipo}. Isto representa uma taxa de ${taxa} ocorrências por cada 100 mil habitantes. Em comparação com os concelhos vizinhos, este apresenta uma concentração de criminalidade muito elevada, sendo classificado como um cluster Alto-Alto.",
+
+LL: "No concelho de ${nome}, no ano de ${ano}, ${foram} registado${plural} ${ocorr} ${tipo}. Isto representa uma taxa de ${taxa} ocorrências por cada 100 mil habitantes. Apresenta uma concentração muito baixa, sendo classificado como um cluster Baixo-Baixo.",
+
+HL: "No concelho de ${nome}, no ano de ${ano}, ${foram} registado${plural} ${ocorr} ${tipo}. Isto representa uma taxa de ${taxa} ocorrências por cada 100 mil habitantes. Este concelho apresenta elevada concentração de crimes, enquanto os seus vizinhos apresentam valores baixos, sendo classificado como um outlier Alto-Baixo.",
+
+LH: "No concelho de ${nome}, no ano de ${ano}, ${foram} registado${plural} ${ocorr} ${tipo}. Isto representa uma taxa de ${taxa} ocorrências por cada 100 mil habitantes. Este concelho apresenta baixa concentração, enquanto os seus vizinhos apresentam valores elevados, sendo classificado como um outlier Baixo-Alto.",
+
+NS: "No concelho de ${nome}, no ano de ${ano}, ${foram} registado${plural} ${ocorr} ${tipo}, com uma taxa de ${taxa} por cada 100 mil habitantes. Neste período, não foi identificado qualquer padrão estatisticamente significativo.",
+
+ND: "No concelho de ${nome}, no ano de ${ano}, não foram registados dados disponíveis de ${tipo}, segundo a SSP."
+
+},
+
+"ru-RU": {
+
+semDados: "В муниципалитете ${nome} в ${ano} году зарегистрировано ${ocorr} случаев.",
+
+HH: "В муниципалитете ${nome} в ${ano} году зарегистрировано ${ocorr} случаев. Это соответствует уровню ${taxa} на 100 тысяч жителей. Наблюдается высокая концентрация преступности, классифицируемая как кластер высокий-высокий.",
+
+LL: "В муниципалитете ${nome} в ${ano} году зарегистрировано ${ocorr} случаев. Это соответствует уровню ${taxa} на 100 тысяч жителей. Наблюдается низкая концентрация преступности, кластер низкий-низкий.",
+
+HL: "В муниципалитете ${nome} в ${ano} году зарегистрировано ${ocorr} случаев. Это соответствует уровню ${taxa} на 100 тысяч жителей. Высокая концентрация при низких значениях у соседей, выброс высокий-низкий.",
+
+LH: "В муниципалитете ${nome} в ${ano} году зарегистрировано ${ocorr} случаев. Это соответствует уровню ${taxa} на 100 тысяч жителей. Низкая концентрация при высоких значениях у соседей, выброс низкий-высокий.",
+
+NS: "В муниципалитете ${nome} в ${ano} году зарегистрировано ${ocorr} случаев, уровень ${taxa} на 100 тысяч жителей. Статистически значимый пространственный паттерн не выявлен.",
+
+ND: "В муниципалитете ${nome} в ${ano} году не зарегистрированы данные о ${tipo} согласно SSP."
+        
+},
+
+};
+
+// =====================================================
+// ================= INICIALIZAÇÃO LISA ================
+// =====================================================
+
+// 1. MAPA — LISA
+
+const zoom = window.innerWidth < 768 ? 6.5 : 7.25;
+
+const map = L.map('map', {
+    preferCanvas: true,
+    renderer: L.canvas({ padding: 0.5 }),
+    zoomControl: true,
+    dragging: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    attributionControl: false
+}).setView([-22.8, -48.3], zoom);
+
+        let geojson;
+
+        fetch("./dados_simplificado.geojson")
+.then(r => {
+    if (!r.ok) throw new Error("Erro ao carregar GeoJSON: " + r.status);
+    return r.json();
+})
+.then(data => {
+
+    console.log("CARREGOU:", data.features.length);
+
+      if (geojson) geojson.remove();
+
+     geojson = L.geoJSON(data, {
+
+    style: function (f) {
+
+        let ano = document.getElementById("ano").value;
+        let cr = document.getElementById("crime").value === "roubo" ? "R" : "F";
+
+        let key = `LISA_${cr}_${ano}`;
+        let raw = f.properties[key];
+
+if (raw == null || raw === "" || Number.isNaN(raw)) {
+    raw = 0; // NS
+}
+
+ /*debug*/
+             /*console.log("KEY:", key);*/
+            /*console.log("RAW:", raw);*/
+            /*console.log("PROPS:", f.properties);*/
+
+            let cores = {
+    1: '#d7191c',   // HH
+    2: '#2c7bb6',   // LL
+    3: '#fdae61',   // HL (laranja)
+    4: '#abd9e9',   // LH (azul claro)
+    0: '#eeeeee'    // NS
+};
+
+           return {
+                fillColor: cores[raw] || '#fff',
+                weight: 0.3,
+                stroke: true,
+             /*opacity: 0.2,*/
+                color: '#ffffff',
+                fillOpacity: 0.75,
+                smoothFactor: 1
+            };
+        },
+
+            onEachFeature: (f, l) => {
+
+// =====================================================
+// ============== INTERAÇÃO DOS MUNICÍPIOS =============
+// =====================================================
+
+// 2. HOVER DOS 645 MUNICÍPIOS
+
+          l.bindTooltip(f.properties.NM_MUN, {
+    permanent: false,
+    direction: "center",
+    className: "label-municipio"
+});
+
+          l.on("click", () => {
+
+       if (geojson) {
+    geojson.eachLayer(layer => {
+        geojson.resetStyle(layer);
+    });
+  }
+
+// =====================================================
+// ================= DESTAQUE MUNICIPAL ================
+// =====================================================
+
+          l.setStyle({
+          weight: 2,
+          color: '#000',
+          fillOpacity: 0.95
+          });
+
+         /*l.bringToFront();*/
+
+                let ano = document.getElementById("ano").value;
+                let tipo = document.getElementById("crime").value; 
+                let lang = document.getElementById("idioma").value;
+                let nOcorr = f.properties[`${tipo.toUpperCase()}S_${ano}`] || 0;
+
+                let verbo = getVerb(lang, nOcorr);
+
+                let nTaxa = Math.round(f.properties[`TAXA_${tipo === 'roubo' ? 'R' : 'F'}_${ano}`] || 0);
+                let lisa = f.properties[`LISA_${tipo === 'roubo' ? 'R' : 'F'}_${ano}`] || 0;
+                let clus =
+    (lisa == 1) ? "HH" :
+    (lisa == 2) ? "LL" :
+    (lisa == 3) ? "HL" :
+    (lisa == 4) ? "LH" :
+    (lisa == 0) ? "NS" : "ND";
+
+                let tipoSingular = "ocorrência";
+                let tipoPlural   = "ocorrências";
+
+                let palavraFinal = (nOcorr === 1) ? tipoSingular : tipoPlural;
+
+                let tipoCrime = t(lang, "crime", tipo, nOcorr);
+
+                let ocorrFinal = (lang === "pt-BR") 
+    ? numeroPorExtenso(nOcorr, "masculino") 
+    : nOcorr;
+
+                let taxaFinal;
+
+if (lang === "pt-BR") {
+    taxaFinal = numeroPorExtenso(nTaxa, "feminino") + " ocorrências";
+} else {
+    taxaFinal = nTaxa.toString();
+}
+
+let textoOcorrencia = "";
+
+if (nOcorr === 0) {
+    textoOcorrencia = `${taxaFinal} para nenhuma ocorrência`;
+} else if (nOcorr === 1) {
+    textoOcorrencia = `${taxaFinal} para ${ocorrFinal} ocorrência`;
+} else {
+    textoOcorrencia = `${taxaFinal} para ${ocorrFinal} ocorrências`;
+}
+
+              let txt = (idiomasData[lang] || idiomasData["pt-BR"])[clus]
+    .replace(/\$\{nome\}/g, f.properties.NM_MUN)
+    .replace(/\$\{ano\}/g, ano)
+    .replace(/\$\{ocorr\}/g, ocorrFinal)
+    .replace(/\$\{taxa\}/g, taxaFinal)
+    .replace(/\$\{tipo\}/g, tipoCrime)
+    .replace(/\$\{verbo\}/g, verbo)
+    .replace(/\$\{tipoCrime\}/g, tipoCrime)
+    .replace(/\$\{taxaOcorrencia\}/g, textoOcorrencia)
+    .replace(/\$\{ocorrencia\}/g, textoOcorrencia)
+    .replace(/\$\{foram\}/g, nOcorr === 1 ? "foi" : "foram")
+    .replace(/\$\{plural\}/g, nOcorr === 1 ? "" : "s");
+
+const ccBox = document.getElementById("ccBox");
+
+ccBox.innerText = txt;
+
+ccBox.focus();
+
+falar(txt);
+
+            });
+        }
+    }).addTo(map);
+})
+.catch(err => {
+    console.error("ERRO GEOJSON:", err);
+});
+
+// Inicializa interface
+atualizarUI();
+
+
+// ========================= LEITURA DOS FILTROS =========================
+
+// ANO
+document.getElementById("ano")
+.addEventListener("change", function(){
+
+let lang =
+document.getElementById("idioma").value;
+
+let texto = {
+
+"pt-BR": "Ano " + this.value,
+"pt-PT": "Ano " + this.value,
+"en-US": "Year " + this.value,
+"es-ES": "Año " + this.value,
+"fr-FR": "Année " + this.value,
+"de-DE": "Jahr " + this.value,
+"it-IT": "Anno " + this.value,
+"ru-RU": "Год " + this.value,
+"ja-JP": this.value + " 年",
+"zh-CN": this.value + " 年"
+
+};
+
+falar(texto[lang] || texto["pt-BR"]);
+
+});
+
+
+// CRIME
+document.getElementById("crime")
+.addEventListener("change", function(){
+
+let texto =
+this.options[this.selectedIndex].text;
+
+falar(texto);
+
+});
+
+
+// IDIOMA
+document.getElementById("idioma")
+.addEventListener("change", function(){
+
+let idiomaFalado = {
+
+"pt-BR": "Português Brasil",
+"pt-PT": "Português Portugal",
+"en-US": "English",
+"es-ES": "Español",
+"fr-FR": "Français",
+"de-DE": "Deutsch",
+"it-IT": "Italiano",
+"ru-RU": "Русский",
+"ja-JP": "日本語",
+"zh-CN": "中文"
+
+};
+
+falar(
+idiomaFalado[this.value] ||
+this.value
+);
+
+});
+        
+</script>
+
+<!-- VLibras -->
+<div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper></div>
+</div>
+
+<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    new window.VLibras.Widget("https://vlibras.gov.br/app");
+});
+</script>
+        
+</body>
+</html>
